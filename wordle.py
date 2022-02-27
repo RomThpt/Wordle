@@ -1,4 +1,5 @@
 from random import choice
+from jeu import Game
 
 def separation(word):
     list_letters=[]
