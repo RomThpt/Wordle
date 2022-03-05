@@ -1,11 +1,4 @@
 from random import choice
-from jeu import Game
-
-def separation(word):
-    list_letters=[]
-    for letter in word:
-        list_letters.append(letter)
-    return list_letters
 
 
 def verification(word,chances):
@@ -39,6 +32,5 @@ def game():
             break
         else:
             player_chances=verification(secret_word, player_chances)
-            print(player_chances)
         
 game()
