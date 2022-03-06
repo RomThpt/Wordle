@@ -1,5 +1,5 @@
 #Importation
-from guizero import App, Box, Drawing, PushButton,info
+from guizero import App, Box, Drawing, PushButton
 from random import choice
 
 
@@ -92,9 +92,12 @@ def on_click_backspace():
     
     """
     global written,input_letters
-    drawing.rectangle(pos[written-1],line, pos[written], line+100,outline=True, outline_color="white")
-    written-=1
-    input_letters=input_letters[:-1]
+    if len(input_letters)==0:
+        pass
+    else:
+        drawing.rectangle(pos[written-1],line, pos[written], line+100,outline=True, outline_color="white")
+        written-=1
+        input_letters=input_letters[:-1]
     
     
 def on_click_enter():
@@ -110,7 +113,18 @@ def on_click_enter():
     """
     global step
     step="".join(input_letters)
-    verification(secret_word)  
+    if len(step)!=5:
+        app.warn("aie", "please 5 letters")
+        restart=app.yesno("End","Restart?")
+        if restart==True:
+            clear()
+            playground()
+        else:
+             app.destroy()
+        clear()
+        playground()
+    else:
+        verification(secret_word)  
 
   
 def verification(secret): 
@@ -134,7 +148,7 @@ def verification(secret):
         the columns we are
 
     """
-    global step, line,written
+    global step, line, written
     user_input=step
     if user_input==secret:
             for j in range(1,6):
@@ -158,11 +172,32 @@ def verification(secret):
                 drawing.text(x+20, line+2, text=input_letters[k],size=60,color="white")
                 k+=1  
     line+=100 
+    if line==500:
+        restart=app.yesno("End","Restart?")
+        if restart==True:
+            clear()
+            playground()
+        else:
+            app.destroy()
+            
+        
     step=""
     input_letters.clear()
     written=0
 
+def clear():
+    """
+    
+    Initialize all of the variable
+    
 
+    """
+    
+    global step, written, input_letters, line
+    line=0
+    step=""
+    input_letters.clear()
+    written=0
 #Initialisation
 list_words=["CHIEN"]
 secret_word=choice(list_words)
