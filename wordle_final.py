@@ -1,7 +1,8 @@
 #Importation
 from guizero import App, Box, Drawing, PushButton
 from random import choice
-
+import requests
+from bs4 import BeautifulSoup
 
 #Functions
 
@@ -11,10 +12,9 @@ def playground():
     Draw a playground of 5*5
     
     """
-    for i in range(1,6):
-        for j in range(1,6):
-            drawing.rectangle(pos[j-1], pos[i-1], pos[j], pos[i],outline=True, outline_color="white")  
-
+    for i in range(5):
+        for j in range(5):
+            drawing.rectangle(pos[j], pos[i], pos[j+1], pos[i+1],outline=True, outline_color="white",color="black")  
 
 def keyboard():
     """
@@ -36,7 +36,6 @@ def keyboard():
     backspace=PushButton(azerty_box,text="<--",width=10,height=2,grid=[10,1],command=on_click_backspace)
     backspace.bg=(96,96,96)
         
-    
 def on_click_letter(letters_list,index):
     """
     
@@ -76,8 +75,7 @@ def on_click_letter(letters_list,index):
         drawing.text(420, line+2, text=letters_list[index],size=60,color="white")
         written+=1
         input_letters.append(letters_list[index])
-        
-        
+           
 def on_click_backspace():
     """
     
@@ -99,7 +97,6 @@ def on_click_backspace():
         written-=1
         input_letters=input_letters[:-1]
     
-    
 def on_click_enter():
     """
     
@@ -117,16 +114,12 @@ def on_click_enter():
         app.warn("aie", "please 5 letters")
         restart=app.yesno("End","Restart?")
         if restart==True:
-            clear()
-            playground()
+            restart_wordle()
         else:
              app.destroy()
-        clear()
-        playground()
     else:
         verification(secret_word)  
 
-  
 def verification(secret): 
     """
     
@@ -151,13 +144,18 @@ def verification(secret):
     global step, line, written
     user_input=step
     if user_input==secret:
-            for j in range(1,6):
-                drawing.rectangle(pos[j-1],line, pos[j], line+100,outline=True, outline_color="white",color="green")
+            for j in range(0,5):
+                drawing.rectangle(pos[j],line, pos[j+1], line+100,outline=True, outline_color="white",color="green")
             k=0
             for x in range(0,401,100):
                 drawing.text(x+20, line+2, text=input_letters[k],size=60,color="white")
                 k+=1
-            app.info("GG!","You win")
+            restart=app.yesno("GG","Restart?")
+            if restart==True:
+                restart_wordle()
+                return 0
+            else:
+                app.destroy()
     for i in range(len(user_input)):
         if user_input[i]==secret[i]:
             drawing.rectangle(pos[i],line, pos[i+1], line+100,outline=True, outline_color="white",color="green")
@@ -175,8 +173,7 @@ def verification(secret):
     if line==500:
         restart=app.yesno("End","Restart?")
         if restart==True:
-            clear()
-            playground()
+            restart_wordle()
         else:
             app.destroy()
             
@@ -198,16 +195,43 @@ def clear():
     step=""
     input_letters.clear()
     written=0
+
+def scrap():
+    global list_words
+    request=requests.get('https://www.listesdemots.net/mots5lettres.htm')
+    content=request.content
+    soup = BeautifulSoup(content,features="lxml")
+    p = soup.find_all("span", {"class": "mot"})
+    list_words = [elt.string.strip() for elt in p]
+    with open('mot5lettres.txt', 'w') as f :
+        f.write(list_words[0])
+    for i in range(2,11):
+        request=requests.get('https://www.listesdemots.net/mots5lettres'+'page'+str(i)+'.htm')
+        content=request.content
+        soup = BeautifulSoup(content,features="lxml")
+        p = soup.find_all("span", {"class": "mot"})
+        list_words = [elt.string.strip() for elt in p]
+        with open('mot5lettres.txt', 'a') as f :
+            f.write(list_words[0])
+    with open('mot5lettres.txt','r') as f:
+        all_words=f.read()
+        list_words = all_words.split()
+   
+def restart_wordle():
+    global secret_word
+    clear()
+    playground()
+    secret_word=choice(list_words)
+   
 #Initialisation
-list_words=["CHIEN"]
-secret_word=choice(list_words)
+scrap()
 letters=["A","Z","E","R","T","Y","U","I","O","P","Q","S","D","F","G","H","J","K","L","M","W","X","C","V","B","N"]
 pos=[0,100,200,300,400,500]
 line=0
 written=0
 input_letters=[]
-
-
+secret_word = choice(list_words)
+print(secret_word)
 #Windows
 app=App(title="Wordle",bg=(32,32,32), width=1280,height=800)
 
