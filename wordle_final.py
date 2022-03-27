@@ -1,5 +1,5 @@
 #Importation
-from guizero import App, Box, Drawing, PushButton, Window, Text, Picture, Slider
+from guizero import App, Box, PushButton, Drawing, Window, Text, Picture, Slider
 from random import choice
 import requests
 from bs4 import BeautifulSoup
@@ -7,14 +7,47 @@ from sys import exit
 import unidecode
 
 #Functions
+def closing():
+    """
+    Function that close all of the windows ( fix bug)
 
+    Returns
+    -------
+    int
+        Return 1 if the player want to quit to fix a bug.
+
+    """
+    if app.yesno("Close", "Do you want to quit?"):
+        app.destroy()
+        exit()
+        return 1
+        
 def first_window():
-    global app, pokemon_active, bg_color,text, button_color, display_box, settings_window
-    def closing():
-        if app.yesno("Close", "Do you want to quit?"):
-            app.destroy()
-            exit()
+    """
+    It's the first window that appears, in others words, App
+    It initializes all of the color, all of the boxes, and interactions like buttons or text
 
+    Returns
+    -------
+    None.
+    
+    Globals
+    -------
+    app:
+        the app window, this way, all of the other function can have access to the app
+    pokemon_active:
+        We want to know if the player choose the classic game mode or the pokemon game mode
+    bg_color:
+        the background color to change it when the user want
+    text:
+        We want to change the color of the text if the player want
+    button_color:
+        We want to chnage the color of the buttons and the interrraction when the player want
+    display_box:
+        the other functions can modify the display_box 
+
+    """
+    global app, pokemon_active, bg_color,text, button_color, display_box
     pokemon_active=False
     bg_color=(32,32,32)
     button_color=(62,62,62)
@@ -24,9 +57,9 @@ def first_window():
     settings_box=Box(app,width="fill",height=45, align="top")
     settings=Picture(settings_box, image="settings.png", align="right", width=45, height=45)
     settings.when_clicked=parameter
-    void_text_box=Box(app,width="fill",height="fill", align="top")
+    Box(app,width="fill",height="fill", align="top")
     text_box=Box(app, width="fill",height="fill", align="top", layout="grid")
-    void_button_box=Box(app,width="fill",height="fill", align="left")
+    Box(app,width="fill",height="fill", align="left")
     display_box=Box(app, width="fill",height="fill", layout="grid", align="left")
     
     text = Text(text_box, text="How many letters do you want ?", align="top", color="white", width=49, height=3, bg=button_color, grid=[0,0])
@@ -42,7 +75,41 @@ def first_window():
     app.display()
 
 def parameter():
+    """
+    The fuction that create a parameter_window that used to change the color of the background and interrractions
+
+    Returns
+    -------
+    None.
+
+    """
+    def come_back():
+        """
+        Used to came back on the app window
+        
+        """
+        settings_window.destroy()
+        
     def bg_color_changing(white_coefficient):
+        """
+        The function for the slider 
+        like that we know wich color the user want
+
+        Parameters
+        ----------
+        white_coefficient : str
+            The value of the slider.
+
+        Globals
+        -------
+        bg_color:
+            like that the the value of the button color is free and we can use it to change the bg color
+        button_color:
+            like that we can change interractions color and buton color
+        text_rgb:
+            like that we can chnage the text color
+        
+        """
         global bg_color,button_color, text_rgb
         bg_color=(int(white_coefficient), int(white_coefficient), int(white_coefficient))
         button_color=(255-bg_color[0]-30,255-bg_color[1]-30,255-bg_color[2]-30)
@@ -52,6 +119,10 @@ def parameter():
             text_rgb=(255,255,255)
             
     def confirm_bg():
+        """
+        It's the function of the button that confirm what kind of color do the user want
+
+        """
         settings_window.bg=bg_color
         app.bg=bg_color
         app.text_color=text_rgb
@@ -65,6 +136,10 @@ def parameter():
         dark_mode.bg=button_color
 
     def dark_mode_setup():
+        """
+        The function of the button that set the main color, in others words to the dark mode color
+
+        """
         global bg_color, button_color
         bg_color=(32,32,32)
         button_color=(62,62,62)
@@ -81,6 +156,7 @@ def parameter():
         dark_mode.bg=button_color
 
     settings_window=Window(app, title="Settings",bg=bg_color, width=350,height=500)
+    settings_window.when_closed=come_back
     slider=Slider(settings_window,32,200,command=bg_color_changing)
     slider.bg=button_color
     confirm_button=PushButton(settings_window,text="Confirm?", width=30,height=5, command=confirm_bg)
@@ -88,22 +164,58 @@ def parameter():
     dark_mode=PushButton(settings_window,text="Dark mode?", width=30,height=5, command=dark_mode_setup)
     dark_mode.bg=button_color
 
-def set_game(index):
-    global length_letters, game_window,playground_box, wxcvbn_box, qsdfgh_box, azerty_box, drawing, line, written, input_letters
-    #Initialisation
+def set_game(len_want):
+    """
+    The game_window with all of the game tools like keyboard, the playground and so on
+
+    Parameters
+    ----------
+    len_want : int
+        The length that the user want to deals with.
+
+    Returns
+    -------
+    None.
+    
+    Globals
+    -------
+    length_letters:
+        It's the length of the word the user want
+    game_window:
+        like that the other function can modify the game window for exemple the keyboard
+    playground_box, wxcvbn_box, qsdfgh_box, azerty_box:
+        like that the other functions can modify boxes
+    drawing:
+        like that other functions can draw
+    line:
+        to know on wich line we are (how many chances left)
+    written:
+        how many letters are inputed (on wich column)
+    input_letters:
+        wich letters are inputed
+    
+    """
+    global length_letters, game_window, playground_box, wxcvbn_box, drawing, qsdfgh_box, azerty_box, line, written, input_letters
+    
     def come_back():
+        """
+        the function to go on the other game_mode
+        
+        """
         game_window.destroy()
         if pokemon_active:
             pokemon_window.show()
         else:
             app.show()
+            
+    #Initialisation
     line=0
     written=0
     input_letters=[]
     app.hide()
     game_window=Window(app, title="Wordle",bg=bg_color, width=1280,height=800)
     game_window.when_closed=come_back
-    length_letters=index#len of the word
+    length_letters=len_want#len of the word
     
     #Boxes
     playground_box=Box(game_window, align="top",width=500,height=500)
@@ -111,8 +223,8 @@ def set_game(index):
     qsdfgh_box=Box(game_window,layout="grid",align="bottom")
     azerty_box=Box(game_window,layout="grid",align="bottom")
         
-    #Drawing
     drawing=Drawing(playground_box,width="fill",height="fill")
+    
     secret(length_letters)
     playground(length_letters)
     keyboard()
@@ -120,9 +232,25 @@ def set_game(index):
 def playground(width):
     """
     
-    Draw a playground of width*5
+    Setup and draw a playground of width*5 depending of the length desired
+    
+    Globals
+    -------
+    pos:
+        the position of cubes depending of the length desired
+    playground_box:
+        like that other function can modify this box
     
     """
+    def draw_playground():
+        """
+        Draw a playground of width*5 depending of the length desired
+
+        """
+        for i in range(5):
+            for j in range(width):
+                drawing.rectangle(pos[j], pos_y[i], pos[j+1], pos_y[i+1],outline=True, outline_color="white",color="black") 
+                
     global pos,playground_box
     pos=[0,100,200,300,400,500]
     pos_y=pos
@@ -133,18 +261,14 @@ def playground(width):
                 pos.append(x*100)
                 break
             pos.append(x*100)
-        for i in range(5):
-            for j in range(width):
-                drawing.rectangle(pos[j], pos_y[i], pos[j+1], pos_y[i+1],outline=True, outline_color="white",color="black")   
+        draw_playground()  
     if width==2:
         pos=[150,250,350]
     if width==3:
         pos=pos[1:5]
     if width==4:
         pos=[50,150,250,350,450]
-    for i in range(5):
-        for j in range(width):
-            drawing.rectangle(pos[j], pos_y[i], pos[j+1], pos_y[i+1],outline=True, outline_color="white",color="black")        
+    draw_playground()      
 
 def keyboard():
     """
@@ -167,7 +291,7 @@ def keyboard():
     backspace=PushButton(azerty_box,text="<--",width=10,height=2,grid=[10,1],command=on_click_backspace)
     backspace.bg=(96,96,96)
         
-def on_click_letter(letters_list,index):
+def on_click_letter(letters_list,index_letter):
     """
     
     When you click on a button the functions know which letters it is and write it on the playground
@@ -176,7 +300,7 @@ def on_click_letter(letters_list,index):
     ----------
     letters_list : list
         list of letters to know what letters the player can press
-    index : int
+    index_letter : int
         to know which letter the player pressed
     
     Globals
@@ -188,21 +312,20 @@ def on_click_letter(letters_list,index):
     global written, input_letters 
     for i in range(13):
         if written==i and length_letters>=i+1:
-            if letters_list[index]=="I" or letters_list[index]=="-":
-                drawing.text(pos[i]+35, line+2, text=letters_list[index],size=60,color="white")
+            if letters_list[index_letter]=="I" or letters_list[index_letter]=="-":
+                drawing.text(pos[i]+35, line+2, text=letters_list[index_letter],size=60,color="white")
                 written+=1
-                input_letters.append(letters_list[index])
+                input_letters.append(letters_list[index_letter])
                 break
             else:
-                drawing.text(pos[i]+20, line+2, text=letters_list[index],size=60,color="white")
+                drawing.text(pos[i]+20, line+2, text=letters_list[index_letter],size=60,color="white")
                 written+=1
-                input_letters.append(letters_list[index])
+                input_letters.append(letters_list[index_letter])
                 break
            
 def on_click_backspace():
     """
-    
-    Delete the last character and replace it on the playground by a dark rectangle
+    Delete the last character and replace it on the playground with a dark rectangle
 
     Globals
     -------
@@ -315,7 +438,10 @@ def clear():
     
     Initialize all of the variable
     
-
+    Globals
+    -------
+    step, written, input_letters, line:
+        initialize all of this variable
     """
     
     global step, written, input_letters, line
@@ -325,6 +451,10 @@ def clear():
     written=0
 
 def scrap():
+    """
+    Scraping method
+
+    """
     global list_words
     # 2 letters
     request=requests.get('https://www.listesdemots.net/mots2lettres.htm')
@@ -376,6 +506,7 @@ def scrap():
         list_words = [elt.string.strip() for elt in p]
         with open('mot5lettres.txt', 'a') as f :
             f.write(list_words[0])
+    #21 letters
     request=requests.get('https://www.listesdemots.net/mots21lettres.htm')
     content=request.content
     soup = BeautifulSoup(content,features="lxml")
@@ -393,12 +524,29 @@ def scrap():
     tri_pokemon_letters()
          
 def restart_wordle():
+    """
+    Restart the game
+
+    """
     global secret_word
     clear()
     playground(length_letters)
     secret(length_letters)
    
 def secret(width):
+    """
+    Create the secret value randomly
+    
+    Parameters
+    ----------
+    width : int
+        length that the user want to deals with.
+        
+    Globals
+    -------
+    secret_word:
+        the secret word
+    """
     global secret_word
     for i in range(2,6):
         if width==i:
@@ -423,6 +571,10 @@ def secret(width):
                     print(secret_word)
         
 def tri_pokemon_letters():
+    """
+    Function that sort pokemon's names by their length
+
+    """
     for i in range(4,13):
         with open('pokemon_'+str(i)+'.txt', 'w',encoding="utf-8") as f :
                     f.write("")
@@ -432,12 +584,23 @@ def tri_pokemon_letters():
                     f.write(unidecode.unidecode(pokemon).upper()+" ")
 
 def pokemon_first_window():
+    """
+    The window to play at the pokmon Wordle
+
+    Globals
+    -------
+    pokemon_window:
+        like thta the other function can modify the pokemon window
+    pokmon_active:
+        to initialize the game mode
+
+    """
     global pokemon_window, pokemon_active
-    def closing():
-            app.destroy()
-            exit()
-        
     def come_back():
+        """
+        To come back on the classic page
+        
+        """
         app.show()
         pokemon_window.destroy()
         
@@ -447,11 +610,11 @@ def pokemon_first_window():
     pokemon_window=Window(app,title="Wordle choice", bg=bg_color, width=1280,height=800)
     pokemon_window.when_closed=closing
     #Picture
-    pokemon_picture=Picture(pokemon_window, image="pokemon.png", align="top", width=1000, height=350)
+    Picture(pokemon_window, image="pokemon.png", align="top", width=1000, height=350)
     #Form
-    void_text_box=Box(pokemon_window,width="fill",height="fill", align="top")
+    Box(pokemon_window,width="fill",height="fill", align="top")
     text_box=Box(pokemon_window, width="fill",height="fill", align="top", layout="grid")
-    void_button_box=Box(pokemon_window,width="fill",height="fill", align="left")
+    Box(pokemon_window,width="fill",height="fill", align="left")
     display_box=Box(pokemon_window, width="fill",height="fill", layout="grid", align="left")
     #Text
     text = Text(text_box, text="How many letters do you want ?", align="top", color="white", width=49, height=3, bg=(60,60,60), grid=[0,0])
@@ -468,3 +631,5 @@ def pokemon_first_window():
 
 # My giga slave
 first_window()
+if closing()==1:
+    exit()
