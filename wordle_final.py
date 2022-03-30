@@ -256,19 +256,22 @@ def playground(width):
     pos_y=pos
     if pokemon_active:
         for x in range(6,13):
+            if width==4:
+                pos=[50,150,250,350,450]
             if width==x:
                 playground_box.width=x*100
                 pos.append(x*100)
                 break
             pos.append(x*100)
         draw_playground()  
-    if width==2:
-        pos=[150,250,350]
-    if width==3:
-        pos=pos[1:5]
-    if width==4:
-        pos=[50,150,250,350,450]
-    draw_playground()      
+    else:
+        if width==2:
+            pos=[150,250,350]
+        if width==3:
+            pos=pos[1:5]
+        if width==4:
+            pos=[50,150,250,350,450]
+        draw_playground()      
 
 def keyboard():
     """
@@ -394,7 +397,10 @@ def verification(secret):
                 drawing.rectangle(pos[j],line, pos[j+1], line+100,outline=True, outline_color="white",color="green")
             k=0
             for x in range(length_letters):
-                drawing.text(pos[x]+20, line+2, text=input_letters[k],size=60,color="white")
+                if user_input[x]=="I" or user_input[x]=="-":
+                    drawing.text(pos[x]+35, line+2, text=input_letters[k],size=60,color="white")
+                else:
+                    drawing.text(pos[x]+20, line+2, text=input_letters[k],size=60,color="white")
                 k+=1
             restart=game_window.yesno("GG","Restart?")
             if restart==True:
@@ -408,7 +414,10 @@ def verification(secret):
             drawing.rectangle(pos[i],line, pos[i+1], line+100,outline=True, outline_color="white",color="green")
             k=0
             for x in range(length_letters):
-                drawing.text(pos[x]+20, line+2, text=input_letters[k],size=60,color="white")
+                if user_input[x]=="I" or user_input[x]=="-":
+                    drawing.text(pos[x]+35, line+2, text=input_letters[k],size=60,color="white")
+                else:
+                    drawing.text(pos[x]+20, line+2, text=input_letters[k],size=60,color="white")
                 k+=1
         else:
             for j in range(0,length_letters):
@@ -417,7 +426,10 @@ def verification(secret):
                         drawing.rectangle(pos[i],line, pos[i+1], line+100,outline=True, outline_color="white",color="yellow")
                         k=0
                         for x in range(length_letters):
-                            drawing.text(pos[x]+20, line+2, text=input_letters[k],size=60,color="white")
+                            if user_input[x]=="I" or user_input[x]=="-":
+                                drawing.text(pos[x]+35, line+2, text=input_letters[k],size=60,color="white")
+                            else:
+                                drawing.text(pos[x]+20, line+2, text=input_letters[k],size=60,color="white")
                             k+=1  
     line+=100 
     if line==500:
@@ -453,7 +465,6 @@ def clear():
 def scrap():
     """
     Scraping method
-
     """
     global list_words
     # 2 letters
@@ -522,7 +533,8 @@ def scrap():
     a = soup.find_all("a", {"class" :"name" })
     list_words = [elt.string.strip() for elt in a]
     tri_pokemon_letters()
-         
+    
+    
 def restart_wordle():
     """
     Restart the game
@@ -630,6 +642,5 @@ def pokemon_first_window():
     worlde_picture.when_clicked=come_back
 
 # My giga slave
+scrap()
 first_window()
-if closing()==1:
-    exit()
